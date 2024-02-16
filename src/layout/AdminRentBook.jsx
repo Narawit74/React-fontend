@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom'; // Import useParams
+import { Link, useNavigate } from 'react-router-dom';
 import axios from "axios";
 import useAuth from '../Hooks/useAuth';
 import Swal from 'sweetalert2';
@@ -26,20 +26,15 @@ export default function AdminRentBook() {
     const [searchText, setSearchText] = useState('');
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-
-        let delayTimer;
-        const delay = 500;
-
         const fetchData = async () => {
+            const url = searchText.length !== 0
+                ? `http://localhost:3000/rentbook/search?text=${searchText}`
+                : "http://localhost:3000/rentbook/all";
+
             try {
-                let url = "http://localhost:3000/rentbook/all";
-                if (searchText.length !== 0) {
-                    url = `http://localhost:3000/rentbook/search?text=${searchText}`;
-                }
                 const response = await axios.get(url, {
                     headers: {
-                        Authorization: `Bearer ${token}`
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
                     }
                 });
                 setRentBook(response.data);
@@ -48,15 +43,7 @@ export default function AdminRentBook() {
             }
         };
 
-        const delayedFetchData = () => {
-            clearTimeout(delayTimer);
-            delayTimer = setTimeout(fetchData, delay);
-        };
-
-        delayedFetchData();
-        return () => {
-            clearTimeout(delayTimer);
-        };
+        fetchData();
     }, [searchText]);
 
     const handleSelectAll = () => {
@@ -69,6 +56,80 @@ export default function AdminRentBook() {
         }
     };
 
+    // const handleDeleteSelected = async () => {
+    //     try {
+    //         await axios.delete("http://localhost:3000/rentbook/delete", {
+    //             headers: {
+    //                 Authorization: `Bearer ${localStorage.getItem('token')}`
+    //             },
+    //             data: {
+    //                 selectedItems: selectedItems
+    //             }
+    //         });
+    //         // ลบข้อมูลเรียบร้อยแล้ว อัพเดทหนังสือที่แสดง
+    //         const updatedRentBook = rentbook.filter(book => !selectedItems.includes(book.id));
+    //         setRentBook(updatedRentBook);
+    //         // ล้างรายการที่เลือก
+    //         setSelectedItems([]);
+    //         Swal.fire({
+    //             icon: 'success',
+    //             title: 'ลบข้อมูลสำเร็จ',
+    //             text: 'ลบรายการหนังสือที่เลือกเรียบร้อยแล้ว',
+    //             timer: 2000
+    //         });
+    //     } catch (error) {
+    //         console.error("Error deleting selected books:", error);
+    //         Swal.fire({
+    //             icon: 'error',
+    //             title: 'เกิดข้อผิดพลาดในการลบข้อมูล',
+    //             text: 'โปรดลองอีกครั้งภายหลัง',
+    //             timer: 2000
+    //         });
+    //     }
+    // };
+
+    const handleDeleteItem = async (id) => {
+        // สร้างกล่องข้อความยืนยันการลบ
+        const confirmDelete = await Swal.fire({
+            icon: 'warning',
+            title: 'ยืนยันการลบข้อมูล',
+            text: 'คุณแน่ใจหรือไม่ที่ต้องการลบรายการหนังสือนี้?',
+            showCancelButton: true,
+            confirmButtonText: 'ใช่, ลบ!',
+            cancelButtonText: 'ยกเลิก'
+        });
+    
+        // ถ้าผู้ใช้ยืนยันการลบ
+        if (confirmDelete.isConfirmed) {
+            try {
+                await axios.delete(`http://localhost:3000/rentbook/delete/${id}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                // ลบข้อมูลเรียบร้อยแล้ว
+                Swal.fire({
+                    icon: 'success',
+                    title: 'ลบข้อมูลสำเร็จ',
+                    text: 'ลบรายการหนังสือเรียบร้อยแล้ว',
+                    timer: 2000
+                });
+                // รีโหลดหน้าเว็บหลังจากลบข้อมูล
+                setTimeout(function () {
+                    window.location.reload();
+                }, 1000);
+            } catch (error) {
+                console.error(`Error deleting book with ID ${id}:`, error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาดในการลบข้อมูล',
+                    text: 'โปรดลองอีกครั้งภายหลัง',
+                    timer: 2000
+                });
+            }
+        }
+    };    
 
     const handleSelectItem = (id) => {
         if (selectedItems.includes(id)) {
@@ -92,6 +153,7 @@ export default function AdminRentBook() {
                 </div>
                 <Link to="/insert" className="btn btn-success">เพิ่มรายการหนังสือ</Link>
                 <button className="btn">ลบข้อมูลที่เลือก</button>
+                {/* <button className="btn" onClick={handleDeleteSelected}>ลบข้อมูลที่เลือก</button> */}
             </div>
             <div className="overflow-x-auto">
                 <table className="table">
@@ -112,7 +174,7 @@ export default function AdminRentBook() {
                         </tr>
                     </thead>
                     <tbody>
-                        {rentbook.RentData && rentbook.RentData.length === 0 ? (
+                        {rentbook.length === 0 ? (
                             <tr>
                                 <td colSpan="7" className="px-6 py-4">
                                     <div className="flex justify-center">
@@ -154,8 +216,8 @@ export default function AdminRentBook() {
                                     </td>
 
                                     <td className='flex gap-3'>
-                                    <Link to={`/edit?id=${book.id}`} className="btn">แก้ใขข้อมูล</Link>
-                                        <button className="btn">ลบข้อมูล</button>
+                                        <Link to={`/edit?id=${book.id}`} className="btn btn-outline btn-warning">แก้ใขข้อมูล</Link>
+                                        <button className="btn btn-outline btn-error" onClick={() => handleDeleteItem(book.id)}>ลบข้อมูล</button>
                                     </td>
                                 </tr>
                             ))
