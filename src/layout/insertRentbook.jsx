@@ -115,7 +115,7 @@ function InsertRentbook() {
                                     </select>
                                 </div><br />
                                 <div className='flex gap-3 items-center'>
-                                    <label htmlFor="userID" className="block text-sm font-bold text-gray-700 md:w-1/3 text-right">ไอดี :</label>
+                                    <label htmlFor="userID" className="block text-sm font-bold text-gray-700 md:w-1/3 text-right">หนังสือของ :</label>
                                     <input type="text" id="userID" className="input w-full md:w-3/4 border border-gray-300 rounded-md p-2" placeholder="ไอดีผู้ใช้งาน" name="userID" onChange={handleChange} required />
                                 </div>
                             </div>

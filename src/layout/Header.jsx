@@ -15,7 +15,7 @@ const userNav = [
 ];
 
 const adminNav = [
-  { to: '/users', text: 'บัญชีผู้ใช้งาน' },
+  { to: '/users', text: 'รายการบัญชีทั้งหมด' },
   { to: '/rentbookAdmin', text: 'รายการหนังสือทั้งหมด' },
   { to: '/profile', text: 'โปรไฟล์' },
 ];
@@ -47,10 +47,18 @@ export default function Header() {
     }).then((result) => {
       if (result.isConfirmed) {
         logout();
-        navigate('/');
+        Swal.fire({
+          title: 'Success',
+          text: 'ออกจากระบบสำเร็จ',
+          icon: 'success',
+          timer: 1000,
+          showConfirmButton: false
+        }).then(() => {
+          window.location.href = '/';
+        });
       }
     });
-  };
+  };  
 
   return (
     <div className="navbar bg-base-100">
@@ -75,7 +83,7 @@ export default function Header() {
       </div>
       <div className="navbar-center">
         <a className="btn btn-ghost text-xl">
-          {user?.id ? `ยินดีต้อนรับ, ${user.display}` : <span className="font-bold text-1xl flex gap-2"><img src="https://www.kktech.ac.th/files/bigsize_10000001_21101520200238.jpg" alt="" width="30" height="24" />วิทยาลัยเทคนิคขอนแก่น</span>}
+          {user?.id ? `ยินดีต้อนรับ, ${user.display}` : <span className="font-bold text-1xl flex gap-2"><img src="https://media.discordapp.net/attachments/1130676495296254035/1130679074046627940/6.png?ex=65dd40f2&is=65cacbf2&hm=a6c79c8735544fc6ec4d1d34510ca6cff7f4f6e6783b036091c93f5cd8e76bbd&=&format=webp&quality=lossless&width=281&height=281" alt="" width="30" height="24" />วิทยาลัยเทคนิคขอนแก่น</span>}
         </a>
       </div>
       <div className="navbar-end">

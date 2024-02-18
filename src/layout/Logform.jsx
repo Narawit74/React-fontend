@@ -43,7 +43,8 @@ export default function Logform() {
                 icon: 'success',
                 title: 'Login Successful',
                 text: 'คุณเข้าสู่ระบบสำเร็จแล้ว!',
-                timer: 1500
+                timer: 1500,
+                showConfirmButton: false
             }).then(()=> {
                 if(rs1.data.role === 99){
                     console.log('role 99 success')

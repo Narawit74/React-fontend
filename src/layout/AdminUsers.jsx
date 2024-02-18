@@ -4,7 +4,7 @@ import axios from "axios";
 import useAuth from '../Hooks/useAuth';
 import Swal from 'sweetalert2';
 
-export default function AdminRentBook() {
+function AdminUsers() {
     const { user } = useAuth();
     const navigate = useNavigate();
 
@@ -20,19 +20,16 @@ export default function AdminRentBook() {
         }
     }, [user, navigate]);
 
-    const [rentbook, setRentBook] = useState([]);
+    const [User, setUsers] = useState([]);
     const [selectAll, setSelectAll] = useState(false);
     const [selectedItems, setSelectedItems] = useState([]);
     const [searchText, setSearchText] = useState('');
 
     useEffect(() => {
         const fetchData = async () => {
-            let url = null
-            if(searchText.length === 0){
-            url = "http://localhost:3000/rentbook/all";
-            }else{
-            url = `http://localhost:3000/rentbook/search?text=${searchText}`;
-            }
+            const url = searchText.length !== 0
+                ? `http://localhost:3000/user/search?text=${searchText}`
+                : "http://localhost:3000/user/users";
 
             try {
                 const response = await axios.get(url, {
@@ -40,9 +37,9 @@ export default function AdminRentBook() {
                         Authorization: `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-                setRentBook(response.data);
+                setUsers(response.data);
             } catch (error) {
-                console.error("Error fetching Rentbook:", error);
+                console.error("Error fetching Users:", error);
             }
         };
 
@@ -52,7 +49,7 @@ export default function AdminRentBook() {
     const handleSelectAll = () => {
         setSelectAll(!selectAll);
         if (!selectAll) {
-            const allIds = rentbook.RentData.map(book => book.id);
+            const allIds = User.map(User => User.id);
             setSelectedItems(allIds);
         } else {
             setSelectedItems([]);
@@ -61,7 +58,7 @@ export default function AdminRentBook() {
 
     const handleDeleteSelected = async () => {
         try {
-            await axios.delete("http://localhost:3000/rentbook/delete", {
+            await axios.delete("http://localhost:3000/user/delete", {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 },
@@ -69,34 +66,34 @@ export default function AdminRentBook() {
                     selectedItems: selectedItems
                 }
             });
-            // ลบข้อมูลเรียบร้อยแล้ว อัพเดทหนังสือที่แสดง
-            const updatedRentBook = rentbook.filter(book => !selectedItems.includes(book.id));
-            setRentBook(updatedRentBook);
+            // ลบข้อมูลเรียบร้อยแล้ว อัพเดทผู้ใช้ที่แสดง
+            const updatedUsers = User.filter(user => !selectedItems.includes(user.id));
+            setUsers(updatedUsers);
             // ล้างรายการที่เลือก
             setSelectedItems([]);
             Swal.fire({
                 icon: 'success',
                 title: 'ลบข้อมูลสำเร็จ',
-                text: 'ลบรายการหนังสือที่เลือกเรียบร้อยแล้ว',
+                text: 'ลบบัญชีที่เลือกเรียบร้อยแล้ว',
                 timer: 2000
             });
         } catch (error) {
-            console.error("Error deleting selected books:", error);
+            console.error("Error deleting selected users:", error);
             Swal.fire({
                 icon: 'error',
-                title: 'เกิดข้อผิดพลาดในการลบข้อมูล',
+                title: 'เกิดข้อผิดพลาดในการลบลบบัญชี',
                 text: 'โปรดลองอีกครั้งภายหลัง',
                 timer: 2000
             });
         }
-    };
+    };    
 
     const handleDeleteItem = async (id) => {
         // สร้างกล่องข้อความยืนยันการลบ
         const confirmDelete = await Swal.fire({
             icon: 'warning',
-            title: 'ยืนยันการลบข้อมูล',
-            text: 'คุณแน่ใจหรือไม่ที่ต้องการลบรายการหนังสือนี้?',
+            title: 'ยืนยันการลบลบบัญชี',
+            text: 'คุณแน่ใจหรือไม่ที่ต้องการลบลบบัญชีนี้?',
             showCancelButton: true,
             confirmButtonText: 'ใช่, ลบ!',
             cancelButtonText: 'ยกเลิก'
@@ -105,7 +102,7 @@ export default function AdminRentBook() {
         // ถ้าผู้ใช้ยืนยันการลบ
         if (confirmDelete.isConfirmed) {
             try {
-                await axios.delete(`http://localhost:3000/rentbook/delete/${id}`, {
+                await axios.delete(`http://localhost:3000/user/delete/${id}`, {
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -115,7 +112,7 @@ export default function AdminRentBook() {
                 Swal.fire({
                     icon: 'success',
                     title: 'ลบข้อมูลสำเร็จ',
-                    text: 'ลบรายการหนังสือเรียบร้อยแล้ว',
+                    text: 'ลบบัญชีเรียบร้อยแล้ว',
                     timer: 2000
                 });
                 // รีโหลดหน้าเว็บหลังจากลบข้อมูล
@@ -123,7 +120,7 @@ export default function AdminRentBook() {
                     window.location.reload();
                 }, 1000);
             } catch (error) {
-                console.error(`Error deleting book with ID ${id}:`, error);
+                console.error(`Error deleting user with ID ${id}:`, error);
                 Swal.fire({
                     icon: 'error',
                     title: 'เกิดข้อผิดพลาดในการลบข้อมูล',
@@ -148,15 +145,15 @@ export default function AdminRentBook() {
                 <div>
                     <input
                         type="text"
-                        className="input w-full md:w-72 border border-gray-300 rounded-md p-2"
+                        className="input w-full md:w-72 border border-gray-300 rounded-md p-2 bg-red-200"
                         placeholder="ค้นหา..."
                         value={searchText}
                         onChange={(e) => setSearchText(e.target.value)}
                     />
                 </div>
-                <Link to="/insert" className="btn btn-success">เพิ่มรายการหนังสือ</Link>
-                {/* <button className="btn">ลบข้อมูลที่เลือก</button> */}
-                <button className="btn bg-red-300" onClick={handleDeleteSelected}>ลบข้อมูลที่เลือก</button>
+                <Link to="/created" className="btn btn-success">เพิ่มบัญชี</Link>
+                <button className="btn bg-red-300" onClick={handleDeleteSelected}>ลบบัญชีที่เลือก</button>
+                {/* <button className="btn" onClick={handleDeleteSelected}>ลบข้อมูลที่เลือก</button> */}
             </div>
             <div className="overflow-x-auto">
                 <table className="table">
@@ -169,15 +166,15 @@ export default function AdminRentBook() {
                                 </label>
                             </th>
                             <th>ไอดี</th>
-                            <th>ชื่อหนังสือ</th>
-                            <th>วันที่ยืม</th>
-                            <th>ต้องส่งคืน</th>
-                            <th>สถานะ</th>
+                            <th>ชื่อบัญชี</th>
+                            <th>วันสร้างบัญชี</th>
+                            <th>อีเมล</th>
+                            <th>บทบาท</th>
                             <th>แก้ใขข้อมูล / ลบข้อมูล</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {rentbook.length === 0 ? (
+                        {User.length === 0 ? (
                             <tr>
                                 <td colSpan="7" className="px-6 py-4">
                                     <div className="flex justify-center">
@@ -186,15 +183,15 @@ export default function AdminRentBook() {
                                 </td>
                             </tr>
                         ) : (
-                            rentbook.RentData && rentbook.RentData.map(book => (
-                                <tr key={book.id}>
+                             User.map(User => (
+                                <tr key={User.id}>
                                     <td className='flex justify-center'>
                                         <label>
                                             <input
                                                 type="checkbox"
                                                 className="checkbox"
-                                                checked={selectedItems.includes(book.id)}
-                                                onChange={() => handleSelectItem(book.id)}
+                                                checked={selectedItems.includes(User.id)}
+                                                onChange={() => handleSelectItem(User.id)}
                                             />
                                         </label>
                                     </td>
@@ -202,25 +199,25 @@ export default function AdminRentBook() {
                                         <div className="flex items-center gap-3">
                                             <div className="avatar">
                                                 <div className="mask mask-squircle w-12 h-12">
-                                                    <img src={book.img} alt="Avatar Tailwind CSS Component" />
+                                                    <img src={User.avatar} alt="Avatar Tailwind CSS Component" />
                                                 </div>
                                             </div>
                                             <div>
-                                                <div className="flex justify-center items-center font-bold">ID: {book.id}</div>
-                                                <div className="flex justify-center items-center text-sm opacity-50"><i className="fa-solid fa-user"></i>{book.UserID}</div>
+                                                <div className="flex justify-center items-center font-bold">ID: {User.id}</div>
+                                                <div className="flex justify-center items-center text-sm opacity-50"><i className="fa-solid fa-user"></i>{User.Username}</div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className='font-bold'>{book.Title}</td>
-                                    <td>{new Date(book.createdAt).toLocaleDateString()}</td>
-                                    <td className='text-red-500'>{new Date(book.Duedate).toLocaleDateString()}</td>
+                                    <td className='font-bold'>{User.display}</td>
+                                    <td>{new Date(User.createdAt).toLocaleDateString()}</td>
+                                    <td className=' font-bold'>{User.Email}</td>
                                     <td>
-                                        <button className="btn btn-ghost btn-xs text-green-500">{book.Status}</button>
+                                        <button className="btn btn-ghost btn-xs text-green-500">{User.role}</button>
                                     </td>
 
                                     <td className='flex gap-3'>
-                                        <Link to={`/edit?id=${book.id}`} className="btn btn-outline btn-warning">แก้ใขข้อมูล</Link>
-                                        <button className="btn btn-outline btn-error" onClick={() => handleDeleteItem(book.id)}>ลบข้อมูล</button>
+                                        <Link to={`/edituser?id=${User.id}`} className="btn btn-outlin bg-red-300">แก้ใขบัญชี</Link>
+                                        <button className="btn btn-outline btn-error" onClick={() => handleDeleteItem(User.id)}>ลบบัญชี</button>
                                     </td>
                                 </tr>
                             ))
@@ -231,3 +228,5 @@ export default function AdminRentBook() {
         </>
     );
 }
+
+export default AdminUsers

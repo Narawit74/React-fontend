@@ -9,6 +9,9 @@ import UserProfile from '../layout/UserProfile'
 import RentBookAdmin from '../layout/AdminRentBook'
 import Insert from '../layout/insertRentbook'
 import Edit from '../layout/AdminRentBookEdit'
+import Users from '../layout/AdminUsers'
+import InsertUsers from '../layout/insertUsers'
+import EditUsers from '../layout/editUsers'
 
 const guestRouter = createBrowserRouter([
     {
@@ -38,6 +41,9 @@ const userRouter = createBrowserRouter([
             { path: '/rentBookAdmin', element: <RentBookAdmin/> },
             { path: '/insert', element: <Insert/> },
             { path: '/edit', element: <Edit/> },
+            { path: '/users', element: <Users/> },
+            { path: '/created', element: <InsertUsers/> },
+            { path: '/edituser', element: <EditUsers/> },
         ]
     }
 ])
